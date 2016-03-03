@@ -15,6 +15,7 @@ class Client:
         """
         # Set up the socket connection to the server
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.msgParser = None
         self.host = host
         self.server_port = server_port
         self.run()
@@ -26,7 +27,7 @@ class Client:
         msgReceiver = MessageReceiver(self, self.connection)
         msgReceiver.start()
 
-        print "INSTRUCTIONS\nUser must login first - type 'login <username>'\ntype 'help' for list over available commands\n\n"
+        print("INSTRUCTIONS\nUser must login first - type 'login <username>'\ntype 'help' for list over available commands\n\n")
         while self.connection:
             userinput = raw_input()
             if userinput == 'logout':
@@ -37,12 +38,11 @@ class Client:
                 self.send_payload(userinput)
         
     def disconnect(self):
-        print "Disconnecting client..."
+        print("Disconnecting client...")
         self.send_payload('logout')
-        self.connection.close()
 
     def receive_message(self, message):
-        print self.msgParser.parse(message)
+        print(self.msgParser.parse(message))
 
     def send_payload(self, data):
         request = None
@@ -57,7 +57,7 @@ class Client:
         elif data.startswith("help"):
             request = {'request' : 'help', 'content' : None }
         else:
-            print "did not recognize command"
+            print("did not recognize command")
         if request:
             self.connection.sendall(json.dumps(request))
 
