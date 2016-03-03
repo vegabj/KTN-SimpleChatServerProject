@@ -27,16 +27,19 @@ class Client:
         msgReceiver.start()
 
         print "INSTRUCTIONS\nUser must login first - type 'login <username>'\ntype 'help' for list over available commands\n\n"
-        while 1:
+        while self.connection:
             userinput = raw_input()
             if userinput == 'logout':
                 self.disconnect()
+            elif userinput == 'exit':
+                exit()
             else:
                 self.send_payload(userinput)
         
     def disconnect(self):
         print "Disconnecting client..."
         self.send_payload('logout')
+        self.connection.close()
 
     def receive_message(self, message):
         print self.msgParser.parse(message)

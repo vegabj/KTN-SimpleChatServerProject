@@ -4,6 +4,7 @@ import json
 import time
 import datetime
 import re
+import signal
 
 """
 Variables and functions that must be used by all the ClientHandler objects
@@ -15,6 +16,11 @@ clientsConnection = []
 clientsUsernames = []
 #Chat history
 history = []
+
+"""
+Match only a-z, A-Z and 0-9, whole string must match
+"""
+namereg = re.compile("\A[a-zA-z0-9]+\B")
 
 class ClientHandler(SocketServer.BaseRequestHandler):
     """
@@ -31,13 +37,19 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         clientsConnection.append(self.connection)
         self.ip = self.client_address[0]
         self.port = self.client_address[1]
+        
+        self.daemon = True
 
         self.clientname = ''
 
         # Loop that listens for messages from the client
-	while 1:
+	while self.connection:
 			received_json = self.connection.recv(4096)
-			received_string = json.loads(received_json)
+			received_string = ""
+			try:
+				received_string = json.loads(received_json)
+			except ValueError:
+				break
 			request = received_string['request']
 			
 			# ------------------------ Login handle ------------------------
@@ -91,6 +103,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 				history.append(json_message)
 			else:
 				pass
+	if self.clientname != '':
+		clientsUsernames.remove(self.clientname)
 
     def sendResponse(self, response, content):
     	json_response = json.dumps({
@@ -102,13 +116,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
     	self.connection.sendall(json_response)
 
     def isValidUserName(self, name):
-		validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-		if name == '':
-			return False
-		for c in name:
-			if c not in validChars:
-				return False
-		return True
+		return namereg.match(name)
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     """
@@ -118,6 +126,13 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     No alterations are necessary
     """
     allow_reuse_address = True
+
+server = None
+
+def sighandle(signum,sigvar):
+    server.shutdown()
+    server.server_close()
+    exit()
 
 if __name__ == "__main__":
     """
@@ -131,4 +146,10 @@ if __name__ == "__main__":
 
     # Set up and initiate the TCP server
     server = ThreadedTCPServer((HOST, PORT), ClientHandler)
-    server.serve_forever()
+    
+    signal.signal(signal.SIGINT,sighandle)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    server.server_close()
