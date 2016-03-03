@@ -103,6 +103,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
 				history.append(json_message)
 			else:
 				pass
+	if self.clientname != '':
+		clientsUsernames.remove(self.clientname)
 
     def sendResponse(self, response, content):
     	json_response = json.dumps({
