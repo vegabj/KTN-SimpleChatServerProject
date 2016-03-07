@@ -20,19 +20,19 @@ class MessageParser():
             # Response not valid
 
     def parse_error(self, payload):
-        return payload['timestamp']+'\t'+'Error: '+payload['content']
+        return "%s\t%s: %s" % (payload['timestamp'],'Error: ',payload['content'])
     
     def parse_info(self, payload):
-        return payload['timestamp']+'\t'+"Server: "+payload['content']
+        return "%s\t%s: %s" % (payload['timestamp'],"Server: ",payload['content'])
 
     def parse_message(self, payload):
-        return payload['timestamp']+'\t'+payload['sender']+':\t'+payload['content']
+        return "%s\t%s:\t%s" % (payload['timestamp'],payload['sender'],payload['content'])
 
     def parse_history(self, payload):
-        print "Fetching history:"
+        print("Fetching history:")
         for message in payload['content']:
             msg = json.loads(message)
-            print msg['timestamp']+'\t'+msg['sender']+':\t'+msg['content']
+            print("%s\t%s:\t%s" % (msg['timestamp'],msg['sender'],msg['content']))
         return ''
     
     # Include more methods for handling the different responses... 
