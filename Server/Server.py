@@ -5,6 +5,7 @@ import time
 import datetime
 import re
 import signal
+from sys import argv
 
 """
 Variables and functions that must be used by all the ClientHandler objects
@@ -80,7 +81,6 @@ class ClientHandler(SocketServer.BaseRequestHandler):
             # ------------------------ Logout handle ------------------------
             elif request == 'logout':
                 if self.clientname in clientsUsernames:
-                    clientsConnection.remove(self.connection)
                     clientsUsernames.remove(self.clientname)
                     self.sendResponse('info', 'you are now logged out')
                     #TODO Kill this clienthandler object?
@@ -130,11 +130,6 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 server = None
 
-def sighandle(signum,sigvar):
-    server.shutdown()
-    server.server_close()
-    exit()
-
 if __name__ == "__main__":
     """
     This is the main method and is executed when you type "python Server.py"
@@ -142,15 +137,10 @@ if __name__ == "__main__":
 
     No alterations are necessary
     """
-    HOST, PORT = 'localhost', 9998
+    HOST, PORT = argv[1], 9998
     print('Server running...')
 
     # Set up and initiate the TCP server
     server = ThreadedTCPServer((HOST, PORT), ClientHandler)
     
-    signal.signal(signal.SIGINT,sighandle)
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    server.server_close()
+    server.serve_forever()

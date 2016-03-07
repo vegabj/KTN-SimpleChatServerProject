@@ -3,6 +3,7 @@ import socket
 import json
 from MessageReceiver import MessageReceiver
 from MessageParser import MessageParser
+from sys import argv
 
 class Client:
     """
@@ -69,4 +70,4 @@ if __name__ == '__main__':
 
     No alterations are necessary
     """
-    client = Client('localhost', 9998)
+    client = Client(argv[1], 9998)
